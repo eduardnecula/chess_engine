@@ -1,0 +1,93 @@
+Proiect echipa: Fara PA am fi pa
+componenta echipa: Mirescu Victor Marian, Necula Eduard Ionut, Radu Alexandru Florin, Simiocencu Andrei
+grupa echipa: 322CA
+
+
+Instructiuni de compilare:
+	-Se intra in fisierul src, unde se afla toate clasele. Pentru compilare vom folosi comanda make, care 
+	-Vom rula comanda make de fiecare data cand vom aduce mofificari codului.
+	-Pentru pornirea engine-ului vom rula (din fisierul src) comanda:
+		 xboard -fcp "make run" -debug
+	-make run porneste codul engine-ului nostru pentru a-l putea testa individual.
+
+Etapa1:
+
+Detalii despre structura programului:
+		S-a facut o ierarhie de piese care deriva din clasa principala JavaPiece. Acestea contin un nume, un index
+	si o culoare. Index-ul este facut pentru a acorda pe viitor o importanta la piesa care trebuie atacata(cea de 
+	index mai mare).
+		Pentru tabla am folosit o matrice de clase Square, unde Square reprezinta un patrat care are o piesa.
+	Daca piesa din Square este NULL, inseamna ca patratul este gol. Tabla are de asemena si functii care curata 
+	patratul, adica sterge piesa dupa el si adauga una nulla. Pe liniile 0 si 1 am pus piesele negre, iar pe 
+	liniile 6 si 7 am pus piesele albe.
+		Legatura programului cu interfata se face in functia Main, folosind un switch care interpreteaza comenzile 
+	date de xboard.
+		Functia de interpretare are rolul de a transforma o expresie de forma "e2e4" intr-o miscare pe tabla, folosind 
+	coordonate precum: linieSursa, coloanaSursa, linieDestinatie, coloana Destinatie
+		Algoritmul de miscare are rolul de a incerca prima oara sa faca miscari agresive cu prima piesa care poate face 
+	acest lucru, iar daca niciuna nu poate va face o miscare banala. Prin miscare agresiva ma refer ca pionul sa captureze 
+	o piesa, iar prin banala doar sa se duca in fata
+
+
+Detalii despre abordarea algoritmica:
+	Algoritmul din functia thinkAndMove():
+	Acesta trece prin toate elementele din matrice si verifica daca gaseste pioni de culoarea cu care joaca botul. 
+	Daca a gasit incearca sa faca miscari agresive cu ei, iar daca nu este posibil face miscari banale pana acestea 
+	se epuizeaza si trimite resign.
+	Prioritatea pe care o are pionul la miscari este urmatoarea:
+	1)daca se afla pe ultima casuta, se transforma in regina
+	2)daca are o piesa pe casuta din stanga sau dreapta lui o captureaza(se muta pe ea)
+	3)daca se afla la prima sa mutare(este inca pe linia initiala), va face doi pasi in fata(doar cei de index impar, pentru
+	o defensiva mai buna inspirata din apararea siciliana)
+	4)in celelalte cazuri, avanseaza o casuta in fata daca este liber
+	Miscarile incercate de fiecare pion sunt in ordinea prioritatii.
+
+Etapa2:
+
+	In aceasta etapa, programul a fost dezvoltat pentru a putea muta toate piesele.
+	Rationamenul folosit este unul simplu, daca o piesa poate ataca, acesta o va face. In etapa 3 se va dezvolta gandirea propriu zisa.
+
+	Rocada: 
+		Algoritmul implementat se asigura ca daca regele este mutat, nu se poate efectua mutarea. Daca oricare din din ture este mutata, rocada nu se va mai executa.
+		Pentru a putea efectua rocada, codul se asigura sa inlature toate piesele intre tura si rege. S-a preferat eliberarea pieselor pentru rocada mica.
+		De asemenea, daca locul unde se va afla regele este in sah, efectuarea mutarii nu se va realiza.
+
+	En passant: 
+		Implementarea este simpla. In functie de culoarea cu care joc, programul se asigura sa mute corespunzator pionul in en passant. Daca ultima mutare nu este cea corespunzatoare, en passant-ul nu se va executa
+
+	Conditia de sah:
+		Programul se asigura ca regele poate muta in jurul lui. Detalii despre modul de gandire:
+			Regele cauta urmatorul patratel valid unde poate muta in jurul sau. Daca acest patratel este ocupat de inamic, dar nu intra in sah, regele va ataca pionul.
+			Pentru a realiza conditia de sah, se cauta in toate zonele din care poate fi atacat. Daca este atacat, apeleaza o functie care rezolva sahul, adica muta regele. Daca nu gaseste o mutare buna, jocul ofera remiza.
+
+	Mutarile normale de sah:
+		In cazul in care regele nu este in sah, sau in cazul in care programul nu poate sa atace nimic, acesta executa o mutare simpla intr-un patratel gol, cu orice piesa este disponibila.
+
+		Pentru rege s-a asigurat faptul ca acesta pastrea distanta fata de regele inamic.
+
+		Mai multe detalii:
+
+		1. Dupa ce primeste o mutare, engine-ul actualizeaza pozitia din matrice
+		2. Se verifica daca regele este in sah, daca este il rezolva, altfel trece la mutari
+		3. Se muta piesele care se afla intre rege si tura (pentru rocada mica)
+		4. Sunt prioritizate mutarile care pot sa atace o piesa inamica.
+		5. Dupa mutarile agresive, se incearca mutari simple
+		6. Programul se termina atunci cand nu mai sunt miscari disponibile, sau pana cand se repeta miscarile.
+
+Surse de inspiratie:
+	Strategii de sah, ca de exp: Sicilian Defense
+	Seriale: Gambitul Damei 
+
+
+Responsabilitatea fiecarui membru Etapa 1
+	Simiocencu Andrei: - reprezentarea pieselor + imbunatatiri la unele functii
+	Radu Alexandru: - reprezentarea tablei de joc + imbunatatiri la unele functii
+	Necula Eduard: - legatura jocului cu interfata xboard, makefile, interpretarea miscarii date de xboard, new game
+	Mirescu Victor: - programul de gandire al jocului prin care se fac miscarile(thinkAndMove), transpunerea comenzilor pe tabla
+					de joc si interpretarea mutarilor in format ("move a2a3"), schimbarea modului de joc white->black 
+
+Responsabilitatea fiecarui membru Etapa 2
+	Simiocencu Andrei: - conditia de sah + testare
+	Radu Alexandru: - conditia de sah + testare + mutarea turei
+	Necula Eduard: implementarea mutarii en passant + rocada mica si mare, in functie de culoare + mutarea calului + mutarea regelui.
+	Mirescu Victor: - conditia de sah + testare + mutarea reginei
